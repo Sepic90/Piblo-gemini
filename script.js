@@ -15,7 +15,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-let currentEditEntryId = null; // Global state for tracking which entry is being edited
+let currentEditEntryId = null;
 
 // --- AUTHENTICATION ---
 auth.onAuthStateChanged(user => {
@@ -32,6 +32,7 @@ auth.onAuthStateChanged(user => {
         if (carListContainer) carListContainer.innerHTML = '';
     }
 });
+
 document.getElementById('login-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const loginError = document.getElementById('login-error');
@@ -41,15 +42,64 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
     auth.signInWithEmailAndPassword(email, password)
         .catch(err => loginError.textContent = 'Invalid email or password.');
 });
+
 document.getElementById('sign-out-btn').addEventListener('click', () => auth.signOut());
 
 // --- APP INITIALIZATION & NAVIGATION ---
 function initializeAppData() {
     displayCars();
     populateCarSelect(document.getElementById('entry-car'));
-    populateCarSelect(document.getElementById('history-car-select'));
+    populateHistorySubmenu();
 }
 
+// Populate the history submenu with cars
+async function populateHistorySubmenu() {
+    if (!auth.currentUser) return;
+    const submenu = document.getElementById('history-submenu');
+    const snapshot = await db.collection('cars').where('userId', '==', auth.currentUser.uid).orderBy('createdAt', 'desc').get();
+    
+    if (snapshot.empty) {
+        submenu.innerHTML = '<li class="submenu-item no-cars">No cars added yet</li>';
+    } else {
+        submenu.innerHTML = snapshot.docs.map(doc => {
+            const car = doc.data();
+            return `<li><a href="#" class="submenu-link" data-car-id="${doc.id}">${car.nickname}</a></li>`;
+        }).join('');
+        
+        // Add click handlers for submenu items
+        submenu.querySelectorAll('.submenu-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const carId = e.target.getAttribute('data-car-id');
+                showHistoryForCar(carId);
+                
+                // Update active states
+                document.querySelectorAll('.nav-link, .nav-link-parent, .submenu-link').forEach(l => l.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById('history-parent').classList.add('active');
+                
+                // Show entry history page
+                document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+                document.getElementById('entry-history').classList.remove('hidden');
+                
+                const car = snapshot.docs.find(d => d.id === carId).data();
+                document.getElementById('page-title').textContent = `${car.nickname} - Service History`;
+                
+                if (window.innerWidth <= 768) document.querySelector('.sidebar').classList.remove('open');
+            });
+        });
+    }
+}
+
+// Toggle submenu
+document.getElementById('history-parent').addEventListener('click', (e) => {
+    e.preventDefault();
+    const submenu = document.getElementById('history-submenu');
+    const parent = e.target.closest('.has-submenu');
+    parent.classList.toggle('submenu-open');
+});
+
+// Regular navigation for other pages
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -60,16 +110,24 @@ document.querySelectorAll('.nav-link').forEach(link => {
         if (activePage) activePage.classList.remove('hidden');
 
         document.getElementById('page-title').textContent = e.target.textContent;
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.nav-link, .nav-link-parent, .submenu-link').forEach(l => l.classList.remove('active'));
         e.target.classList.add('active');
+        
+        // Close submenu
+        document.querySelector('.has-submenu').classList.remove('submenu-open');
+        
         if (window.innerWidth <= 768) document.querySelector('.sidebar').classList.remove('open');
 
-        // Page-specific initializers/resets
-        if (targetPageId === 'new-entry') { resetNewEntryForm(); populateCarSelect(document.getElementById('entry-car')); }
-        if (targetPageId === 'entry-history') { document.getElementById('history-display-area').classList.add('hidden'); document.getElementById('history-car-select').value = ''; populateCarSelect(document.getElementById('history-car-select')); }
-        if (targetPageId === 'manage-cars') { displayCars(); }
+        if (targetPageId === 'new-entry') { 
+            resetNewEntryForm(); 
+            populateCarSelect(document.getElementById('entry-car')); 
+        }
+        if (targetPageId === 'manage-cars') { 
+            displayCars(); 
+        }
     });
 });
+
 document.getElementById('menu-toggle').addEventListener('click', () => document.querySelector('.sidebar').classList.toggle('open'));
 document.querySelector('.nav-link[data-page="manage-cars"]').click();
 
@@ -116,6 +174,7 @@ carForm.addEventListener('submit', async (e) => {
         }
         closeCarModal();
         displayCars();
+        populateHistorySubmenu();
     } catch (error) { console.error("Error saving car: ", error); alert("Failed to save car."); }
     finally { saveCarBtn.disabled = false; }
 });
@@ -148,7 +207,14 @@ async function editCar(id) {
     const car = doc.data();
     document.getElementById('modal-title').textContent = `Edit ${car.nickname}`;
     carIdInput.value = id;
-    carForm['car-nickname'].value = car.nickname; carForm['car-year'].value = car.year; carForm['car-make'].value = car.make; carForm['car-model'].value = car.model; carForm['car-variant'].value = car.variant || ''; carForm['car-vin'].value = car.vin || ''; carForm['car-license'].value = car.license || ''; carForm['car-color'].value = car.color || '#3498db';
+    carForm['car-nickname'].value = car.nickname; 
+    carForm['car-year'].value = car.year; 
+    carForm['car-make'].value = car.make; 
+    carForm['car-model'].value = car.model; 
+    carForm['car-variant'].value = car.variant || ''; 
+    carForm['car-vin'].value = car.vin || ''; 
+    carForm['car-license'].value = car.license || ''; 
+    carForm['car-color'].value = car.color || '#3498db';
     openCarModal();
 }
 
@@ -156,10 +222,9 @@ async function deleteCar(id, photoURL) {
     if (!confirm('Are you sure you want to delete this car? This will also delete all of its service history and cannot be undone.')) return;
     try {
         if (photoURL) { await storage.refFromURL(photoURL).delete(); }
-        // Note: Deleting subcollections is a more advanced topic, handled by Firebase Functions usually.
-        // For now, we just delete the parent car document.
         await db.collection('cars').doc(id).delete();
         displayCars();
+        populateHistorySubmenu();
     } catch (error) { console.error("Error deleting car: ", error); alert("Failed to delete car."); }
 }
 
@@ -168,10 +233,18 @@ const newEntryForm = document.getElementById('service-entry-form');
 const partsContainer = document.getElementById('parts-container');
 const photoPreviewContainer = document.getElementById('photo-preview-container');
 
+function addPartRow() {
+    const row = document.createElement('div');
+    row.className = 'part-row';
+    row.innerHTML = `<input type="text" class="part-description" placeholder="Description"><input type="text" class="part-number" placeholder="Part Number"><input type="number" class="part-quantity" placeholder="Qty"><select class="part-uom"><option>EA</option><option>L</option><option>QT</option><option>KIT</option><option>SET</option></select><button type="button" class="btn-delete-part">&times;</button>`;
+    partsContainer.appendChild(row);
+}
+
 function resetNewEntryForm() {
     newEntryForm.reset();
     document.getElementById('entry-date').valueAsDate = new Date();
     partsContainer.innerHTML = '';
+    addPartRow(); // Add one default part row
     photoPreviewContainer.innerHTML = '';
     currentEditEntryId = null;
     document.getElementById('save-entry-btn').textContent = "Save Entry";
@@ -179,12 +252,18 @@ function resetNewEntryForm() {
 }
 
 document.getElementById('add-part-btn').addEventListener('click', () => {
-    const row = document.createElement('div');
-    row.className = 'part-row';
-    row.innerHTML = `<input type="text" class="part-description" placeholder="Description"><input type="text" class="part-number" placeholder="Part Number"><input type="number" class="part-quantity" placeholder="Qty"><select class="part-uom"><option>EA</option><option>L</option><option>QT</option><option>KIT</option><option>SET</option></select><button type="button" class="btn-delete-part">&times;</button>`;
-    partsContainer.appendChild(row);
+    addPartRow();
 });
-partsContainer.addEventListener('click', e => { if (e.target.classList.contains('btn-delete-part')) e.target.closest('.part-row').remove(); });
+
+partsContainer.addEventListener('click', e => { 
+    if (e.target.classList.contains('btn-delete-part')) {
+        // Only allow deletion if more than one row exists
+        if (partsContainer.querySelectorAll('.part-row').length > 1) {
+            e.target.closest('.part-row').remove();
+        }
+    }
+});
+
 document.getElementById('entry-photos').addEventListener('change', e => {
     photoPreviewContainer.innerHTML = '';
     Array.from(e.target.files).forEach(file => {
@@ -198,10 +277,18 @@ newEntryForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const saveBtn = document.getElementById('save-entry-btn');
     const statusContainer = document.getElementById('upload-status-container');
-    saveBtn.disabled = true; statusContainer.classList.remove('hidden'); statusContainer.innerHTML = 'Starting...';
+    saveBtn.disabled = true; 
+    statusContainer.classList.remove('hidden'); 
+    statusContainer.innerHTML = 'Starting...';
     
     const carId = document.getElementById('entry-car').value;
-    const partsData = Array.from(document.querySelectorAll('#parts-container .part-row')).map(row => ({ description: row.querySelector('.part-description').value, partNumber: row.querySelector('.part-number').value, quantity: row.querySelector('.part-quantity').value, uom: row.querySelector('.part-uom').value }));
+    const partsData = Array.from(document.querySelectorAll('#parts-container .part-row')).map(row => ({ 
+        description: row.querySelector('.part-description').value, 
+        partNumber: row.querySelector('.part-number').value, 
+        quantity: row.querySelector('.part-quantity').value, 
+        uom: row.querySelector('.part-uom').value 
+    })).filter(part => part.description || part.partNumber); // Only include rows with content
+    
     const photoFiles = document.getElementById('entry-photos').files;
     
     try {
@@ -213,14 +300,21 @@ newEntryForm.addEventListener('submit', async (e) => {
             photoURLs.push(url);
         }
 
-        const entryData = { date: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('entry-date').value)), odometer: Number(newEntryForm['entry-odometer'].value), task: newEntryForm['entry-task'].value, description: newEntryForm['entry-description'].value, oilChanged: newEntryForm['entry-oil-changed'].checked, parts: partsData, };
+        const entryData = { 
+            date: firebase.firestore.Timestamp.fromDate(new Date(document.getElementById('entry-date').value)), 
+            odometer: Number(newEntryForm['entry-odometer'].value), 
+            task: newEntryForm['entry-task'].value, 
+            description: newEntryForm['entry-description'].value, 
+            oilChanged: newEntryForm['entry-oil-changed'].checked, 
+            parts: partsData, 
+        };
         
         if (currentEditEntryId) {
             statusContainer.innerHTML = 'Updating entry...';
             const entryRef = db.collection('cars').doc(carId).collection('service_history').doc(currentEditEntryId);
             const existingEntry = await entryRef.get();
             const existingPhotos = existingEntry.data().photos || [];
-            entryData.photos = [...existingPhotos, ...photoURLs]; // Merge old and new photos
+            entryData.photos = [...existingPhotos, ...photoURLs];
             await entryRef.update(entryData);
         } else {
             statusContainer.innerHTML = 'Saving entry...';
@@ -232,39 +326,57 @@ newEntryForm.addEventListener('submit', async (e) => {
         statusContainer.innerHTML = '<p style="color: green;">Success!</p>';
         setTimeout(() => {
             statusContainer.classList.add('hidden');
-            document.querySelector('.nav-link[data-page="entry-history"]').click();
-            document.getElementById('history-car-select').value = carId;
-            showHistoryForCar(carId);
+            
+            // Trigger the submenu link click for this car
+            const submenuLink = document.querySelector(`.submenu-link[data-car-id="${carId}"]`);
+            if (submenuLink) {
+                submenuLink.click();
+            }
         }, 1500);
 
-    } catch (error) { console.error("Error saving service entry: ", error); statusContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`; }
+    } catch (error) { 
+        console.error("Error saving service entry: ", error); 
+        statusContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`; 
+    }
     finally { saveBtn.disabled = false; }
 });
 
 // --- ENTRY HISTORY ---
-document.getElementById('history-car-select').addEventListener('change', (e) => showHistoryForCar(e.target.value));
 async function showHistoryForCar(carId) {
     const historyDisplayArea = document.getElementById('history-display-area');
     const historyTable = historyDisplayArea.querySelector('.history-table');
 
-    if (!carId) { historyDisplayArea.classList.add('hidden'); return; }
+    if (!carId) { 
+        historyDisplayArea.classList.add('hidden'); 
+        return; 
+    }
 
     const carDoc = await db.collection('cars').doc(carId).get();
     if (!carDoc.exists) return;
     const car = { id: carDoc.id, ...carDoc.data() };
     
-    document.getElementById('history-car-header').innerHTML = `<img src="${car.photoURL || 'https://via.placeholder.com/120'}" class="car-header-img"><div class="car-header-details"><h3>${car.nickname}</h3><p>${car.year} ${car.make} ${car.model}</p></div>`;
-
-    historyTable.querySelector('thead').innerHTML = `
-        <tr>
-            <th>Date</th>
-            <th>Odometer</th>
-            <th>Task / Title</th>
-            <th class="centered">Oil?</th>
-            <th></th> <!-- Expand -->
-            <th></th> <!-- Edit -->
-            <th></th> <!-- Delete -->
-        </tr>`;
+    // Build modern header with larger image and full details including variant (no dash)
+    const variantText = car.variant ? ` ${car.variant}` : '';
+    document.getElementById('history-car-header').innerHTML = `
+        <div class="car-hero-image" style="background-image: url('${car.photoURL || 'https://via.placeholder.com/600x300?text=No+Image'}');"></div>
+        <div class="car-info-overlay">
+            <div class="car-badge">
+                <div class="badge-content">
+                    <h2>${car.nickname}</h2>
+                    <p class="car-details">${car.year} ${car.make} ${car.model}${variantText}</p>
+                </div>
+                <button class="share-btn" onclick="openShareModal('${car.id}')" title="Share this vehicle's history">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    Share
+                </button>
+            </div>
+        </div>`;
 
     const historySnapshot = await db.collection('cars').doc(carId).collection('service_history').orderBy('date', 'desc').get();
     const historyTableBody = historyTable.querySelector('tbody');
@@ -275,14 +387,16 @@ async function showHistoryForCar(carId) {
         historyTableBody.innerHTML = historySnapshot.docs.map(doc => {
             const entry = { id: doc.id, ...doc.data() };
             const date = entry.date.toDate().toISOString().split('T')[0];
-            const hasDetails = (entry.description && entry.description.trim() !== '') || (entry.parts && entry.parts.some(p => p.description)) || (entry.photos && entry.photos.length > 0);
+            const hasDetails = (entry.description && entry.description.trim() !== '') || 
+                             (entry.parts && entry.parts.some(p => p.description)) || 
+                             (entry.photos && entry.photos.length > 0);
             
             return `
                 <tr class="entry-row">
                     <td>${date}</td>
                     <td>${entry.odometer.toLocaleString()}</td>
                     <td>${entry.task}</td>
-                    <td class="centered">${entry.oilChanged ? '✔️' : ''}</td>
+                    <td>${entry.oilChanged ? '✔️' : ''}</td>
                     <td>${hasDetails ? `<button class="action-link" onclick="toggleDetails(this, '${car.id}', '${entry.id}')">Expand</button>` : ''}</td>
                     <td><button class="action-link" onclick="editEntry('${car.id}', '${entry.id}')">Edit</button></td>
                     <td><button class="action-link delete" onclick="deleteEntry('${car.id}', '${entry.id}')">Delete</button></td>
@@ -292,6 +406,9 @@ async function showHistoryForCar(carId) {
         }).join('');
     }
     historyDisplayArea.classList.remove('hidden');
+    
+    // Store current car ID for sharing
+    historyDisplayArea.dataset.currentCarId = carId;
 }
 
 async function toggleDetails(btn, carId, entryId) {
@@ -349,17 +466,28 @@ async function editEntry(carId, entryId) {
     newEntryForm['entry-description'].value = entry.description;
     newEntryForm['entry-oil-changed'].checked = entry.oilChanged;
     
-    partsContainer.innerHTML = (entry.parts || []).map(p => {
-        return `<div class="part-row">
-                    <input type="text" class="part-description" value="${p.description || ''}" placeholder="Description">
-                    <input type="text" class="part-number" value="${p.partNumber || ''}" placeholder="Part Number">
-                    <input type="number" class="part-quantity" value="${p.quantity || ''}" placeholder="Qty">
-                    <select class="part-uom" data-selected="${p.uom || 'EA'}"><option>EA</option><option>L</option><option>QT</option><option>KIT</option><option>SET</option></select>
-                    <button type="button" class="btn-delete-part">&times;</button>
-                </div>`;
-    }).join('');
-    
-    partsContainer.querySelectorAll('.part-uom').forEach(sel => { sel.value = sel.dataset.selected || 'EA'; });
+    partsContainer.innerHTML = '';
+    if (entry.parts && entry.parts.length > 0) {
+        entry.parts.forEach(p => {
+            const row = document.createElement('div');
+            row.className = 'part-row';
+            row.innerHTML = `
+                <input type="text" class="part-description" value="${p.description || ''}" placeholder="Description">
+                <input type="text" class="part-number" value="${p.partNumber || ''}" placeholder="Part Number">
+                <input type="number" class="part-quantity" value="${p.quantity || ''}" placeholder="Qty">
+                <select class="part-uom">
+                    <option ${(p.uom || 'EA') === 'EA' ? 'selected' : ''}>EA</option>
+                    <option ${p.uom === 'L' ? 'selected' : ''}>L</option>
+                    <option ${p.uom === 'QT' ? 'selected' : ''}>QT</option>
+                    <option ${p.uom === 'KIT' ? 'selected' : ''}>KIT</option>
+                    <option ${p.uom === 'SET' ? 'selected' : ''}>SET</option>
+                </select>
+                <button type="button" class="btn-delete-part">&times;</button>`;
+            partsContainer.appendChild(row);
+        });
+    } else {
+        addPartRow(); // Add one default row if no parts exist
+    }
     
     currentEditEntryId = entryId;
     document.getElementById('save-entry-btn').textContent = "Save Changes";
@@ -378,16 +506,14 @@ async function deleteEntry(carId, entryId) {
             }
         }
         await entryRef.delete();
-        showHistoryForCar(carId); // Refresh the view
+        showHistoryForCar(carId);
     } catch (err) { console.error("Error deleting entry:", err); alert('Failed to delete entry.'); }
 }
 
-
 // --- SHARING ---
 const shareModal = document.getElementById('share-modal');
-document.getElementById('share-car-btn').addEventListener('click', async () => {
-    const carId = document.getElementById('history-car-select').value;
-    if (!carId) return;
+
+async function openShareModal(carId) {
     const carRef = db.collection('cars').doc(carId);
     const carData = (await carRef.get()).data();
     let shareId = carData.shareId;
@@ -398,7 +524,8 @@ document.getElementById('share-car-btn').addEventListener('click', async () => {
     const link = `${window.location.origin}${window.location.pathname.replace('index.html', '')}view.html?id=${shareId}`;
     document.getElementById('share-link-input').value = link;
     shareModal.classList.remove('hidden');
-});
+}
+
 document.getElementById('close-share-modal-btn').addEventListener('click', () => shareModal.classList.add('hidden'));
 document.getElementById('copy-share-link-btn').addEventListener('click', () => {
     document.getElementById('share-link-input').select();
@@ -409,13 +536,13 @@ document.getElementById('copy-share-link-btn').addEventListener('click', () => {
 // --- UTILITY FUNCTIONS ---
 async function populateCarSelect(selectElement) {
     if (!auth.currentUser || !selectElement) return;
-    const currentVal = selectElement.value; // Save current selection
+    const currentVal = selectElement.value;
     const snapshot = await db.collection('cars').where('userId', '==', auth.currentUser.uid).get();
     selectElement.innerHTML = '<option value="">-- Select a Car --</option>';
     snapshot.forEach(doc => {
         selectElement.innerHTML += `<option value="${doc.id}">${doc.data().nickname}</option>`;
     });
-    selectElement.value = currentVal; // Restore selection
+    selectElement.value = currentVal;
 }
 
 function uploadFile(file, path, progressCallback) {
