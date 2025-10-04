@@ -753,7 +753,7 @@ body {
     padding: 24px;
 }
 
-/* History Table - Keep current structure, just update styling */
+/* History Table - Desktop */
 .history-table {
     width: 100%;
     border-collapse: collapse;
@@ -964,15 +964,32 @@ body {
     font-size: 0.875rem;
 }
 
-/* Responsive */
+/* ============================================
+   MOBILE RESPONSIVE DESIGN
+   ============================================ */
+
 @media (max-width: 768px) {
+    /* Login Page Mobile */
+    .login-box {
+        padding: 32px 24px;
+    }
+
+    .login-box h1 {
+        font-size: 1.75rem;
+    }
+
+    /* Mobile Navigation */
     #menu-toggle {
         display: block;
+        padding: 12px;
+        margin-right: 12px;
+        font-size: 1.75rem;
     }
     
     .sidebar {
         position: fixed;
         z-index: 1000;
+        height: 100vh;
         transform: translateX(-100%);
         box-shadow: var(--shadow-lg);
     }
@@ -980,48 +997,490 @@ body {
     .sidebar.open {
         transform: translateX(0);
     }
+
+    /* Mobile Header */
+    .main-header {
+        padding: 16px 20px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .main-header h1 {
+        font-size: 1.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     
+    /* Mobile Content Area */
     .content-area {
-        padding: 20px;
+        padding: 16px;
     }
-    
-    .modern-car-header {
-        height: 180px;
+
+    /* Mobile Page Header */
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        margin-bottom: 20px;
     }
-    
-    .badge-content h2 {
+
+    .page-header h2 {
         font-size: 1.5rem;
     }
-    
+
+    .btn-primary {
+        width: 100%;
+        padding: 14px 24px;
+        font-size: 1rem;
+    }
+
+    /* Mobile Car Cards */
+    #car-list-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .car-card-image {
+        height: 180px;
+    }
+
+    .car-card-content {
+        padding: 16px;
+    }
+
+    .car-card-actions {
+        padding: 12px 16px;
+        gap: 8px;
+    }
+
+    .car-card-actions button {
+        flex: 1;
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+
+    /* Mobile Modals */
+    .modal-backdrop {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .modal-content {
+        max-width: 100%;
+        max-height: 85vh;
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        padding: 24px 20px;
+    }
+
+    .modal-header h3 {
+        font-size: 1.25rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    /* Mobile New Entry Form */
+    .piblo-form {
+        padding: 20px 16px;
+        border-radius: var(--radius-lg);
+    }
+
+    .form-grid-compact {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .checkbox-group label {
+		padding-top: 0;
+		padding: 8px 12px;
+		background: var(--bg-secondary);
+		border-radius: var(--radius-md);
+		border: 1.5px solid var(--border-color);
+		white-space: nowrap;
+	}
+
+    .piblo-checkbox {
+        width: 24px;
+        height: 24px;
+    }
+
+    .checkbox-group label span {
+        font-size: 1rem;
+    }
+
+    .input-group input,
+    .input-group select,
+    .input-group textarea {
+        padding: 14px 16px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+
+    /* Mobile Parts Section */
+    .parts-section {
+        padding: 16px;
+    }
+
+    .part-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 16px;
+        background: var(--bg-primary);
+        border-radius: var(--radius-md);
+        border: 1.5px solid var(--border-color);
+        margin-bottom: 12px;
+        position: relative;
+    }
+
+    .part-row input,
+    .part-row select {
+        padding: 12px 14px;
+        font-size: 16px;
+    }
+
+    .btn-delete-part {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+        font-size: 1.1rem;
+    }
+
+    .btn-secondary-small {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+    }
+
+    /* Mobile Photo Preview */
+    #photo-preview-container {
+        gap: 10px;
+    }
+
+    #photo-preview-container img {
+        width: calc(33.333% - 7px);
+        height: auto;
+        aspect-ratio: 1;
+    }
+
+    /* Mobile Upload Status */
+    #upload-status-container {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+
+    .form-actions {
+        margin-top: 20px;
+        padding-top: 20px;
+    }
+
+    .form-actions .btn-primary {
+        padding: 16px 24px;
+        font-size: 1rem;
+    }
+
+    /* Mobile Entry History - CARD LAYOUT */
+    .modern-car-header {
+        height: 200px;
+    }
+
+    .car-info-overlay {
+        padding: 20px 16px;
+    }
+
+    .badge-content h2 {
+        font-size: 1.5rem;
+        margin-bottom: 4px;
+    }
+
+    .badge-content .car-details {
+        font-size: 1rem;
+    }
+
     .car-badge {
         flex-direction: column;
         align-items: flex-start;
+        gap: 12px;
     }
-    
-    .form-grid-compact {
-        grid-template-columns: 1fr;
+
+    .share-btn {
+        align-self: stretch;
+        justify-content: center;
+        padding: 12px 18px;
+        font-size: 0.95rem;
     }
-    
-    .checkbox-group label {
-        padding-top: 0;
+
+    .history-content-wrapper {
+        padding: 16px;
     }
-    
-    .history-table th:nth-child(4),
-    .history-table td:nth-child(4) {
+
+    /* MOBILE: Convert table to card layout */
+    .history-table {
+        border: none;
+    }
+
+    .history-table thead {
         display: none;
+    }
+
+    .history-table tbody {
+        display: block;
+    }
+
+    .history-table tbody tr.entry-row {
+        display: block;
+        margin-bottom: 16px;
+        background: var(--bg-primary);
+        border: 1.5px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .history-table tbody tr.entry-row:nth-child(4n+1) {
+        background: var(--bg-primary);
+    }
+
+    .history-table tbody tr.entry-row td {
+        display: block;
+        padding: 0;
+        border: none;
+        text-align: left !important;
+    }
+
+    /* Card header (Date, Odometer, Oil indicator) */
+    .history-table tbody tr.entry-row td:nth-child(1) {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 16px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+
+    .history-table tbody tr.entry-row td:nth-child(1)::before {
+        content: '📅 ';
+        margin-right: 4px;
+    }
+
+    /* Odometer - show inline with date */
+    .history-table tbody tr.entry-row td:nth-child(2) {
+        display: inline;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        position: absolute;
+        right: 16px;
+        top: 14px;
+    }
+
+    .history-table tbody tr.entry-row td:nth-child(2)::before {
+        content: '🛣️ ';
+    }
+
+    /* Task/Title */
+    .history-table tbody tr.entry-row td:nth-child(3) {
+        padding: 14px 16px 10px 16px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        line-height: 1.4;
+    }
+
+    /* Description */
+    .history-table tbody tr.entry-row td:nth-child(4) {
+        padding: 0 16px 14px 16px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        max-width: none !important;
+    }
+
+    .history-table tbody tr.entry-row td:nth-child(4):empty {
+        display: none;
+    }
+
+    /* Oil Changed badge */
+    .history-table tbody tr.entry-row td:nth-child(5) {
+        display: inline-block;
+        padding: 4px 10px;
+        margin: 0 16px 14px 16px;
+        background: var(--success-color);
+        color: white;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .history-table tbody tr.entry-row td:nth-child(5):empty {
+        display: none;
+    }
+
+    .history-table tbody tr.entry-row td:nth-child(5)::before {
+        content: '🛢️ Oil Changed';
+    }
+
+    /* Action buttons container */
+    .history-table tbody tr.entry-row td:nth-child(6),
+    .history-table tbody tr.entry-row td:nth-child(7),
+    .history-table tbody tr.entry-row td:nth-child(8) {
+        display: inline-block;
+        padding: 0;
+        width: auto;
+    }
+
+    /* Create action buttons row */
+    .history-table tbody tr.entry-row::after {
+        content: '';
+        display: block;
+        clear: both;
+    }
+
+    .history-table tbody tr.entry-row td:nth-child(6),
+    .history-table tbody tr.entry-row td:nth-child(7),
+    .history-table tbody tr.entry-row td:nth-child(8) {
+        float: left;
+        width: 33.333%;
+        padding: 12px 8px;
+        text-align: center;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .history-table tbody tr.entry-row td:nth-child(6) {
+        border-right: 1px solid var(--border-color);
+    }
+
+    .history-table tbody tr.entry-row td:nth-child(7) {
+        border-right: 1px solid var(--border-color);
+    }
+
+    .action-link {
+        display: block;
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: var(--radius-sm);
+    }
+
+    /* Details Row */
+    .history-table tbody tr.details-row {
+        display: block;
+        margin-bottom: 16px;
+        margin-top: -16px;
+    }
+
+    .details-cell {
+        display: block;
+        padding: 16px !important;
+        border-radius: var(--radius-lg);
+        border: 1.5px solid var(--border-color);
+    }
+
+    .details-content h5 {
+        font-size: 1rem;
+        margin-top: 20px;
+        margin-bottom: 12px;
+    }
+
+    .details-content .description-text {
+        padding: 14px;
+        font-size: 0.95rem;
+    }
+
+    .details-gallery {
+        gap: 10px;
+    }
+
+    .details-gallery img {
+        width: calc(50% - 5px);
+        height: auto;
+        aspect-ratio: 1;
+    }
+
+    /* Parts Table in Details */
+    .parts-table {
+        font-size: 0.85rem;
+    }
+
+    .parts-table th,
+    .parts-table td {
+        padding: 10px 8px;
+    }
+
+    /* Share Modal Mobile */
+    #share-modal .modal-content {
+        padding: 24px 20px;
+    }
+
+    #share-link-input {
+        padding: 14px 16px;
+        font-size: 0.8rem;
+    }
+
+    #copy-share-link-btn {
+        width: 100%;
+        padding: 14px 24px;
+        margin-top: 12px !important;
     }
 }
 
-@media (max-width: 600px) {
-    .form-grid {
-        grid-template-columns: 1fr;
+/* Extra small screens */
+@media (max-width: 480px) {
+    .login-box {
+        padding: 28px 20px;
     }
-    
-    .part-row {
-        grid-template-columns: 1fr;
+
+    .main-header h1 {
+        font-size: 1.1rem;
     }
-    
-    #car-list-container {
-        grid-template-columns: 1fr;
+
+    .page-header h2 {
+        font-size: 1.35rem;
+    }
+
+    .badge-content h2 {
+        font-size: 1.35rem;
+    }
+
+    .badge-content .car-details {
+        font-size: 0.9rem;
+    }
+
+    #photo-preview-container img {
+        width: calc(50% - 5px);
+    }
+
+    .details-gallery img {
+        width: 100%;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 900px) and (orientation: landscape) {
+    .modal-backdrop {
+        align-items: center;
+    }
+
+    .modal-content {
+        max-height: 90vh;
+        border-radius: var(--radius-xl);
+    }
+
+    .modern-car-header {
+        height: 160px;
     }
 }
