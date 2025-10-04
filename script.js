@@ -3,7 +3,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyBzq4vs7hJEqUhqQxj1AJJHhQk8sh4ZEh4",
     authDomain: "piblo-b3172.firebaseapp.com",
     projectId: "piblo-b3172",
-    storageBucket: "piblo-b3172.appspot.com",
+    storageBucket: "piblo-b3172.firebasestorage.app",  // ← CORRECT
     messagingSenderId: "975704080999",
     appId: "1:975704080999:web:db73db15db6a5afad70ac2",
     measurementId: "G-1K692JRFE7"
@@ -14,6 +14,14 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
+
+// Test storage connection
+auth.onAuthStateChanged(user => {
+    if (user) {
+        console.log("User authenticated:", user.uid);
+        console.log("Storage bucket:", storage.app.options.storageBucket);
+    }
+});
 
 let currentEditEntryId = null;
 

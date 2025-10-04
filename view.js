@@ -2,7 +2,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyBzq4vs7hJEqUhqQxj1AJJHhQk8sh4ZEh4",
     authDomain: "piblo-b3172.firebaseapp.com",
     projectId: "piblo-b3172",
-    storageBucket: "piblo-b3172.appspot.com",
+    storageBucket: "piblo-b3172.firebasestorage.app",  // ← CORRECT
     messagingSenderId: "975704080999",
     appId: "1:975704080999:web:db73db15db6a5afad70ac2",
 };
