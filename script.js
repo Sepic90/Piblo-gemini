@@ -17,6 +17,14 @@ const storage = firebase.storage();
 
 let currentEditEntryId = null;
 
+// Utility function to format date as DD/MM/YYYY
+function formatDateDDMMYYYY(date) {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
 // --- AUTHENTICATION ---
 auth.onAuthStateChanged(user => {
     const loginContainer = document.getElementById('login-container');
@@ -248,7 +256,6 @@ function resetNewEntryForm() {
     photoPreviewContainer.innerHTML = '';
     currentEditEntryId = null;
     document.getElementById('save-entry-btn').textContent = "Save Entry";
-    document.querySelector('#new-entry h2').textContent = "New Service Entry";
 }
 
 document.getElementById('add-part-btn').addEventListener('click', () => {
@@ -382,26 +389,31 @@ async function showHistoryForCar(carId) {
     const historyTableBody = historyTable.querySelector('tbody');
     
     if (historySnapshot.empty) {
-        historyTableBody.innerHTML = `<tr><td colspan="7">No service history found for this vehicle.</td></tr>`;
+        historyTableBody.innerHTML = `<tr><td colspan="8">No service history found for this vehicle.</td></tr>`;
     } else {
         historyTableBody.innerHTML = historySnapshot.docs.map(doc => {
             const entry = { id: doc.id, ...doc.data() };
-            const date = entry.date.toDate().toISOString().split('T')[0];
+            const dateFormatted = formatDateDDMMYYYY(entry.date.toDate());
             const hasDetails = (entry.description && entry.description.trim() !== '') || 
                              (entry.parts && entry.parts.some(p => p.description)) || 
                              (entry.photos && entry.photos.length > 0);
             
+            // Truncate description for the table view
+            const truncatedDesc = entry.description && entry.description.trim() ? 
+                (entry.description.length > 80 ? entry.description.substring(0, 80) + '...' : entry.description) : '';
+            
             return `
                 <tr class="entry-row">
-                    <td>${date}</td>
+                    <td>${dateFormatted}</td>
                     <td>${entry.odometer.toLocaleString()}</td>
                     <td>${entry.task}</td>
+                    <td title="${entry.description || ''}">${truncatedDesc}</td>
                     <td>${entry.oilChanged ? '✔️' : ''}</td>
                     <td>${hasDetails ? `<button class="action-link" onclick="toggleDetails(this, '${car.id}', '${entry.id}')">Expand</button>` : ''}</td>
                     <td><button class="action-link" onclick="editEntry('${car.id}', '${entry.id}')">Edit</button></td>
                     <td><button class="action-link delete" onclick="deleteEntry('${car.id}', '${entry.id}')">Delete</button></td>
                 </tr>
-                <tr class="details-row"><td colspan="7" class="details-cell"></td></tr>
+                <tr class="details-row"><td colspan="8" class="details-cell"></td></tr>
             `;
         }).join('');
     }
@@ -458,7 +470,7 @@ async function editEntry(carId, entryId) {
 
     document.querySelector('.nav-link[data-page="new-entry"]').click();
     
-    document.querySelector('#new-entry h2').textContent = `Edit Entry: ${entry.task}`;
+    document.getElementById('page-title').textContent = `Edit Entry: ${entry.task}`;
     document.getElementById('entry-car').value = carId;
     document.getElementById('entry-date').value = entry.date.toDate().toISOString().split('T')[0];
     newEntryForm['entry-odometer'].value = entry.odometer;
