@@ -1,4 +1,4 @@
-// --- For Firebase JS SDK v7.20.0 and later ---
+// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyBzq4vs7hJEqUhqQxj1AJJHhQk8sh4ZEh4",
     authDomain: "piblo-b3172.firebaseapp.com",
@@ -9,7 +9,7 @@ const firebaseConfig = {
     measurementId: "G-1K692JRFE7"
 };
 
-// --- INITIALIZE FIREBASE ---
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -25,7 +25,12 @@ function formatDateDDMMYYYY(date) {
     return `${day}/${month}/${year}`;
 }
 
-// --- AUTHENTICATION ---
+// Get distance unit display text
+function getDistanceUnitDisplay(unit) {
+    return unit === 'miles' ? 'mi' : 'km';
+}
+
+// Authentication
 auth.onAuthStateChanged(user => {
     const loginContainer = document.getElementById('login-container');
     const appContainer = document.getElementById('app-container');
@@ -53,7 +58,7 @@ document.getElementById('login-form').addEventListener('submit', (e) => {
 
 document.getElementById('sign-out-btn').addEventListener('click', () => auth.signOut());
 
-// --- APP INITIALIZATION & NAVIGATION ---
+// App Initialization & Navigation
 function initializeAppData() {
     displayCars();
     populateCarSelect(document.getElementById('entry-car'));
@@ -74,19 +79,16 @@ async function populateHistorySubmenu() {
             return `<li><a href="#" class="submenu-link" data-car-id="${doc.id}">${car.nickname}</a></li>`;
         }).join('');
         
-        // Add click handlers for submenu items
         submenu.querySelectorAll('.submenu-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const carId = e.target.getAttribute('data-car-id');
                 showHistoryForCar(carId);
                 
-                // Update active states
                 document.querySelectorAll('.nav-link, .nav-link-parent, .submenu-link').forEach(l => l.classList.remove('active'));
                 e.target.classList.add('active');
                 document.getElementById('history-parent').classList.add('active');
                 
-                // Show entry history page
                 document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
                 document.getElementById('entry-history').classList.remove('hidden');
                 
@@ -102,12 +104,11 @@ async function populateHistorySubmenu() {
 // Toggle submenu
 document.getElementById('history-parent').addEventListener('click', (e) => {
     e.preventDefault();
-    const submenu = document.getElementById('history-submenu');
     const parent = e.target.closest('.has-submenu');
     parent.classList.toggle('submenu-open');
 });
 
-// Regular navigation for other pages
+// Regular navigation
 document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -121,7 +122,6 @@ document.querySelectorAll('.nav-link').forEach(link => {
         document.querySelectorAll('.nav-link, .nav-link-parent, .submenu-link').forEach(l => l.classList.remove('active'));
         e.target.classList.add('active');
         
-        // Close submenu
         document.querySelector('.has-submenu').classList.remove('submenu-open');
         
         if (window.innerWidth <= 768) document.querySelector('.sidebar').classList.remove('open');
@@ -139,14 +139,21 @@ document.querySelectorAll('.nav-link').forEach(link => {
 document.getElementById('menu-toggle').addEventListener('click', () => document.querySelector('.sidebar').classList.toggle('open'));
 document.querySelector('.nav-link[data-page="manage-cars"]').click();
 
-// --- MANAGE CARS ---
+// Manage Cars
 const carModal = document.getElementById('car-modal');
 const carForm = document.getElementById('car-form');
 const carIdInput = document.getElementById('car-id');
 const openCarModal = () => carModal.classList.remove('hidden');
-const closeCarModal = () => { carModal.classList.add('hidden'); carForm.reset(); carIdInput.value = ''; };
+const closeCarModal = () => { 
+    carModal.classList.add('hidden'); 
+    carForm.reset(); 
+    carIdInput.value = ''; 
+};
 
-document.getElementById('add-car-btn').addEventListener('click', () => { document.getElementById('modal-title').textContent = "Add New Car"; openCarModal(); });
+document.getElementById('add-car-btn').addEventListener('click', () => { 
+    document.getElementById('modal-title').textContent = "Add New Car"; 
+    openCarModal(); 
+});
 document.getElementById('close-modal-btn').addEventListener('click', closeCarModal);
 carModal.addEventListener('click', e => { if (e.target === carModal) closeCarModal(); });
 
@@ -165,6 +172,7 @@ carForm.addEventListener('submit', async (e) => {
         vin: carForm['car-vin'].value,
         license: carForm['car-license'].value,
         color: carForm['car-color'].value,
+        distanceUnit: carForm['car-distance-unit'].value || 'km', // NEW: Distance unit
         userId: auth.currentUser.uid,
     };
     
@@ -183,7 +191,10 @@ carForm.addEventListener('submit', async (e) => {
         closeCarModal();
         displayCars();
         populateHistorySubmenu();
-    } catch (error) { console.error("Error saving car: ", error); alert("Failed to save car."); }
+    } catch (error) { 
+        console.error("Error saving car: ", error); 
+        alert("Failed to save car."); 
+    }
     finally { saveCarBtn.disabled = false; }
 });
 
@@ -223,6 +234,7 @@ async function editCar(id) {
     carForm['car-vin'].value = car.vin || ''; 
     carForm['car-license'].value = car.license || ''; 
     carForm['car-color'].value = car.color || '#3498db';
+    carForm['car-distance-unit'].value = car.distanceUnit || 'km'; // NEW: Set distance unit
     openCarModal();
 }
 
@@ -233,10 +245,13 @@ async function deleteCar(id, photoURL) {
         await db.collection('cars').doc(id).delete();
         displayCars();
         populateHistorySubmenu();
-    } catch (error) { console.error("Error deleting car: ", error); alert("Failed to delete car."); }
+    } catch (error) { 
+        console.error("Error deleting car: ", error); 
+        alert("Failed to delete car."); 
+    }
 }
 
-// --- NEW SERVICE ENTRY & EDIT ---
+// New Service Entry & Edit
 const newEntryForm = document.getElementById('service-entry-form');
 const partsContainer = document.getElementById('parts-container');
 const photoPreviewContainer = document.getElementById('photo-preview-container');
@@ -244,7 +259,18 @@ const photoPreviewContainer = document.getElementById('photo-preview-container')
 function addPartRow() {
     const row = document.createElement('div');
     row.className = 'part-row';
-    row.innerHTML = `<input type="text" class="part-description" placeholder="Description"><input type="text" class="part-number" placeholder="Part Number"><input type="number" class="part-quantity" placeholder="Qty"><select class="part-uom"><option>EA</option><option>L</option><option>QT</option><option>KIT</option><option>SET</option></select><button type="button" class="btn-delete-part">&times;</button>`;
+    row.innerHTML = `
+        <input type="text" class="part-description" placeholder="Description">
+        <input type="text" class="part-number" placeholder="Part Number">
+        <input type="number" class="part-quantity" placeholder="Qty">
+        <select class="part-uom">
+            <option>EA</option>
+            <option>L</option>
+            <option>QT</option>
+            <option>KIT</option>
+            <option>SET</option>
+        </select>
+        <button type="button" class="btn-delete-part">&times;</button>`;
     partsContainer.appendChild(row);
 }
 
@@ -252,7 +278,7 @@ function resetNewEntryForm() {
     newEntryForm.reset();
     document.getElementById('entry-date').valueAsDate = new Date();
     partsContainer.innerHTML = '';
-    addPartRow(); // Add one default part row
+    addPartRow();
     photoPreviewContainer.innerHTML = '';
     currentEditEntryId = null;
     document.getElementById('save-entry-btn').textContent = "Save Entry";
@@ -264,7 +290,6 @@ document.getElementById('add-part-btn').addEventListener('click', () => {
 
 partsContainer.addEventListener('click', e => { 
     if (e.target.classList.contains('btn-delete-part')) {
-        // Only allow deletion if more than one row exists
         if (partsContainer.querySelectorAll('.part-row').length > 1) {
             e.target.closest('.part-row').remove();
         }
@@ -294,7 +319,7 @@ newEntryForm.addEventListener('submit', async (e) => {
         partNumber: row.querySelector('.part-number').value, 
         quantity: row.querySelector('.part-quantity').value, 
         uom: row.querySelector('.part-uom').value 
-    })).filter(part => part.description || part.partNumber); // Only include rows with content
+    })).filter(part => part.description || part.partNumber);
     
     const photoFiles = document.getElementById('entry-photos').files;
     
@@ -330,11 +355,10 @@ newEntryForm.addEventListener('submit', async (e) => {
             await db.collection('cars').doc(carId).collection('service_history').add(entryData);
         }
         
-        statusContainer.innerHTML = '<p style="color: green;">Success!</p>';
+        statusContainer.innerHTML = '<p style="color: var(--success-color);">Success!</p>';
         setTimeout(() => {
             statusContainer.classList.add('hidden');
             
-            // Trigger the submenu link click for this car
             const submenuLink = document.querySelector(`.submenu-link[data-car-id="${carId}"]`);
             if (submenuLink) {
                 submenuLink.click();
@@ -343,12 +367,12 @@ newEntryForm.addEventListener('submit', async (e) => {
 
     } catch (error) { 
         console.error("Error saving service entry: ", error); 
-        statusContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`; 
+        statusContainer.innerHTML = `<p style="color: var(--danger-color);">Error: ${error.message}</p>`; 
     }
     finally { saveBtn.disabled = false; }
 });
 
-// --- ENTRY HISTORY ---
+// Entry History
 async function showHistoryForCar(carId) {
     const historyDisplayArea = document.getElementById('history-display-area');
     const historyTable = historyDisplayArea.querySelector('.history-table');
@@ -362,7 +386,9 @@ async function showHistoryForCar(carId) {
     if (!carDoc.exists) return;
     const car = { id: carDoc.id, ...carDoc.data() };
     
-    // Build modern header with larger image and full details including variant (no dash)
+    // Get distance unit for this car
+    const distanceUnit = getDistanceUnitDisplay(car.distanceUnit || 'km');
+    
     const variantText = car.variant ? ` ${car.variant}` : '';
     document.getElementById('history-car-header').innerHTML = `
         <div class="car-hero-image" style="background-image: url('${car.photoURL || 'https://via.placeholder.com/600x300?text=No+Image'}');"></div>
@@ -398,14 +424,13 @@ async function showHistoryForCar(carId) {
                              (entry.parts && entry.parts.some(p => p.description)) || 
                              (entry.photos && entry.photos.length > 0);
             
-            // Truncate description for the table view
             const truncatedDesc = entry.description && entry.description.trim() ? 
                 (entry.description.length > 80 ? entry.description.substring(0, 80) + '...' : entry.description) : '';
             
             return `
                 <tr class="entry-row">
                     <td>${dateFormatted}</td>
-                    <td>${entry.odometer.toLocaleString()}</td>
+                    <td>${entry.odometer.toLocaleString()} ${distanceUnit}</td>
                     <td>${entry.task}</td>
                     <td title="${entry.description || ''}">${truncatedDesc}</td>
                     <td>${entry.oilChanged ? '✔️' : ''}</td>
@@ -418,8 +443,6 @@ async function showHistoryForCar(carId) {
         }).join('');
     }
     historyDisplayArea.classList.remove('hidden');
-    
-    // Store current car ID for sharing
     historyDisplayArea.dataset.currentCarId = carId;
 }
 
@@ -498,7 +521,7 @@ async function editEntry(carId, entryId) {
             partsContainer.appendChild(row);
         });
     } else {
-        addPartRow(); // Add one default row if no parts exist
+        addPartRow();
     }
     
     currentEditEntryId = entryId;
@@ -519,10 +542,13 @@ async function deleteEntry(carId, entryId) {
         }
         await entryRef.delete();
         showHistoryForCar(carId);
-    } catch (err) { console.error("Error deleting entry:", err); alert('Failed to delete entry.'); }
+    } catch (err) { 
+        console.error("Error deleting entry:", err); 
+        alert('Failed to delete entry.'); 
+    }
 }
 
-// --- SHARING ---
+// Sharing
 const shareModal = document.getElementById('share-modal');
 
 async function openShareModal(carId) {
@@ -545,7 +571,7 @@ document.getElementById('copy-share-link-btn').addEventListener('click', () => {
     alert('Link Copied!');
 });
 
-// --- UTILITY FUNCTIONS ---
+// Utility Functions
 async function populateCarSelect(selectElement) {
     if (!auth.currentUser || !selectElement) return;
     const currentVal = selectElement.value;
