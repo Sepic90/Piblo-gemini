@@ -320,6 +320,11 @@ body {
     margin-bottom: 28px;
 }
 
+/* Page Header - handle single button case */
+.page-header:has(> .btn-primary:only-child) {
+    justify-content: flex-end;
+}
+
 .page-header h2 {
     font-size: 1.75rem;
     color: var(--text-primary);
@@ -1020,10 +1025,11 @@ body {
         padding: 16px;
     }
 
-    /* Mobile Page Header */
+    * Mobile Page Header */
     .page-header {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
         gap: 16px;
         margin-bottom: 20px;
     }
@@ -1551,4 +1557,11 @@ body {
     .modern-car-header {
         height: 160px;
     }
+}
+/* Page Header - handle single button case */
+.page-header:has(> .btn-primary:only-child) {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 28px;
 }
