@@ -1097,13 +1097,13 @@ body {
     }
 
     .checkbox-group label {
-		padding-top: 0;
-		padding: 8px 12px;
-		background: var(--bg-secondary);
-		border-radius: var(--radius-md);
-		border: 1.5px solid var(--border-color);
-		white-space: nowrap;
-	}
+        padding-top: 0;
+        padding: 8px 12px;
+        background: var(--bg-secondary);
+        border-radius: var(--radius-md);
+        border: 1.5px solid var(--border-color);
+        white-space: nowrap;
+    }
 
     .piblo-checkbox {
         width: 24px;
@@ -1118,7 +1118,7 @@ body {
     .input-group select,
     .input-group textarea {
         padding: 14px 16px;
-        font-size: 16px; /* Prevents iOS zoom on focus */
+        font-size: 16px;
     }
 
     /* Mobile Parts Section */
@@ -1185,7 +1185,7 @@ body {
         font-size: 1rem;
     }
 
-    /* Mobile Entry History - CARD LAYOUT */
+    /* Mobile Entry History */
     .modern-car-header {
         height: 200px;
     }
@@ -1220,8 +1220,7 @@ body {
         padding: 16px;
     }
 
-}
-/* MOBILE: Convert table to card layout */
+    /* MOBILE: Convert table to card layout */
     .history-table {
         border: none;
         display: block;
@@ -1352,7 +1351,7 @@ body {
     }
 
     /* Make buttons smaller */
-    .action-link {
+    .history-table tbody .action-link {
         display: inline-block;
         padding: 4px 8px;
         font-size: 0.85rem;
@@ -1369,12 +1368,12 @@ body {
         margin-bottom: 16px;
     }
 
-    .details-row td {
+    .history-table tbody tr.details-row td {
         display: block !important;
     }
 
     /* FULL WIDTH details cell */
-    .details-cell {
+    .history-table tbody .details-cell {
         display: block;
         padding: 16px !important;
         background: var(--bg-secondary);
@@ -1385,23 +1384,23 @@ body {
         box-sizing: border-box;
     }
 
-    .details-content {
+    .history-table tbody .details-content {
         width: 100%;
         max-width: 100%;
     }
 
-    .details-content h5 {
+    .history-table tbody .details-content h5 {
         font-size: 0.95rem;
         margin: 16px 0 8px 0;
         color: var(--text-primary);
         font-weight: 600;
     }
 
-    .details-content h5:first-child {
+    .history-table tbody .details-content h5:first-child {
         margin-top: 0;
     }
 
-    .details-content .description-text {
+    .history-table tbody .details-content .description-text {
         padding: 12px;
         font-size: 0.9rem;
         background: var(--bg-primary);
@@ -1410,7 +1409,7 @@ body {
         box-sizing: border-box;
     }
 
-    .details-gallery {
+    .history-table tbody .details-gallery {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
@@ -1418,12 +1417,12 @@ body {
         width: 100%;
     }
 
-    .details-gallery a {
+    .history-table tbody .details-gallery a {
         display: block;
         width: 100%;
     }
 
-    .details-gallery img {
+    .history-table tbody .details-gallery img {
         width: 100%;
         height: auto;
         aspect-ratio: 1;
@@ -1431,7 +1430,7 @@ body {
     }
 
     /* Parts Table - FULL WIDTH convert to cards */
-    .parts-table {
+    .history-table tbody .parts-table {
         width: 100% !important;
         max-width: 100% !important;
         border: none;
@@ -1439,17 +1438,17 @@ body {
         display: block;
     }
 
-    .parts-table thead {
+    .history-table tbody .parts-table thead {
         display: none;
     }
 
-    .parts-table tbody,
-    .parts-table tr {
+    .history-table tbody .parts-table tbody,
+    .history-table tbody .parts-table tr {
         display: block;
         width: 100%;
     }
 
-    .parts-table tr {
+    .history-table tbody .parts-table tr {
         margin-bottom: 8px;
         padding: 10px;
         background: var(--bg-primary);
@@ -1459,7 +1458,7 @@ body {
         box-sizing: border-box;
     }
 
-    .parts-table td {
+    .history-table tbody .parts-table td {
         display: block;
         padding: 2px 0;
         border: none;
@@ -1467,19 +1466,19 @@ body {
         width: 100%;
     }
 
-    .parts-table td:nth-child(1) {
+    .history-table tbody .parts-table td:nth-child(1) {
         font-weight: 600;
         color: var(--text-primary);
         margin-bottom: 4px;
     }
 
-    .parts-table td:nth-child(2)::before {
+    .history-table tbody .parts-table td:nth-child(2)::before {
         content: 'P/N: ';
         font-weight: 600;
         color: var(--text-secondary);
     }
 
-    .parts-table td:nth-child(3)::before {
+    .history-table tbody .parts-table td:nth-child(3)::before {
         content: 'Qty: ';
         font-weight: 600;
         color: var(--text-secondary);
@@ -1499,5 +1498,56 @@ body {
         width: 100%;
         padding: 14px 24px;
         margin-top: 12px !important;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .login-box {
+        padding: 28px 20px;
+    }
+
+    .main-header h1 {
+        font-size: 1.1rem;
+    }
+
+    .page-header h2 {
+        font-size: 1.35rem;
+    }
+
+    .badge-content h2 {
+        font-size: 1.35rem;
+    }
+
+    .badge-content .car-details {
+        font-size: 0.9rem;
+    }
+
+    #photo-preview-container img {
+        width: calc(50% - 5px);
+    }
+
+    .history-table tbody .details-gallery {
+        grid-template-columns: 1fr;
+    }
+
+    .history-table tbody .details-gallery img {
+        width: 100%;
+    }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 900px) and (orientation: landscape) {
+    .modal-backdrop {
+        align-items: center;
+    }
+
+    .modal-content {
+        max-height: 90vh;
+        border-radius: var(--radius-xl);
+    }
+
+    .modern-car-header {
+        height: 160px;
     }
 }
