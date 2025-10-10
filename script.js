@@ -3,7 +3,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyBzq4vs7hJEqUhqQxj1AJJHhQk8sh4ZEh4",
     authDomain: "piblo-b3172.firebaseapp.com",
     projectId: "piblo-b3172",
-    storageBucket: "piblo-b3172.firebasestorage.app",  // ← CORRECT
+    storageBucket: "piblo-b3172.firebasestorage.app",
     messagingSenderId: "975704080999",
     appId: "1:975704080999:web:db73db15db6a5afad70ac2",
     measurementId: "G-1K692JRFE7"
@@ -24,6 +24,88 @@ auth.onAuthStateChanged(user => {
 });
 
 let currentEditEntryId = null;
+
+// IMAGE COMPRESSION FUNCTION - NEW!
+async function compressImage(file, maxWidth = 1920, maxHeight = 1920, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+        // Check if it's an image file
+        if (!file.type.startsWith('image/')) {
+            resolve(file); // Return original if not an image
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                // Calculate new dimensions
+                let width = img.width;
+                let height = img.height;
+
+                // Only resize if image is larger than max dimensions
+                if (width > maxWidth || height > maxHeight) {
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = Math.round((width * maxHeight) / height);
+                            height = maxHeight;
+                        }
+                    }
+                }
+
+                // Create canvas and draw resized image
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Convert to blob with compression
+                canvas.toBlob(
+                    (blob) => {
+                        if (!blob) {
+                            reject(new Error('Canvas to Blob conversion failed'));
+                            return;
+                        }
+
+                        // Convert blob to File with original filename
+                        const compressedFile = new File([blob], file.name, {
+                            type: 'image/jpeg', // Convert all to JPEG for better compression
+                            lastModified: Date.now()
+                        });
+
+                        // Log compression results
+                        const originalSize = (file.size / 1024 / 1024).toFixed(2);
+                        const compressedSize = (compressedFile.size / 1024 / 1024).toFixed(2);
+                        const compressionRatio = ((1 - compressedFile.size / file.size) * 100).toFixed(1);
+                        
+                        console.log(`Image compressed: ${originalSize}MB → ${compressedSize}MB (${compressionRatio}% reduction)`);
+                        
+                        resolve(compressedFile);
+                    },
+                    'image/jpeg',
+                    quality
+                );
+            };
+
+            img.onerror = () => {
+                reject(new Error('Failed to load image'));
+            };
+
+            img.src = e.target.result;
+        };
+
+        reader.onerror = () => {
+            reject(new Error('Failed to read file'));
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
 
 // Utility function to format date as DD/MM/YYYY
 function formatDateDDMMYYYY(date) {
@@ -142,7 +224,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
         
         if (window.innerWidth <= 768) document.querySelector('.sidebar').classList.remove('open');
 
-        if (targetPageId === 'new-entry') { 
+        if (targetPageId === 'new-entry' && !currentEditEntryId) { 
             resetNewEntryForm(); 
             populateCarSelect(document.getElementById('entry-car')); 
         }
@@ -196,10 +278,15 @@ carForm.addEventListener('submit', async (e) => {
     try {
         const photoFile = carForm['car-photo'].files[0];
         if (photoFile) {
-            console.log("Uploading car photo...");
+            console.log("Compressing and uploading car photo...");
+            saveCarBtn.textContent = 'Compressing photo...';
+            
+            // Compress image before upload
+            const compressedPhoto = await compressImage(photoFile, 1920, 1920, 0.85);
+            
             saveCarBtn.textContent = 'Uploading photo...';
             carData.photoURL = await uploadFile(
-                photoFile, 
+                compressedPhoto, 
                 `car_photos/${auth.currentUser.uid}/${Date.now()}_${photoFile.name}`
             );
             console.log("Photo uploaded successfully");
@@ -308,6 +395,8 @@ async function deleteCar(id, photoURL) {
 const newEntryForm = document.getElementById('service-entry-form');
 const partsContainer = document.getElementById('parts-container');
 const photoPreviewContainer = document.getElementById('photo-preview-container');
+let existingPhotos = []; // Track existing photos when editing
+let photosToDelete = []; // Track photos marked for deletion
 
 function addPartRow() {
     const row = document.createElement('div');
@@ -333,8 +422,85 @@ function resetNewEntryForm() {
     partsContainer.innerHTML = '';
     addPartRow();
     photoPreviewContainer.innerHTML = '';
+    existingPhotos = [];
+    photosToDelete = [];
     currentEditEntryId = null;
     document.getElementById('save-entry-btn').textContent = "Save Entry";
+}
+
+function displayExistingPhotos(photos) {
+    const existingPhotosContainer = document.getElementById('existing-photos-container');
+    if (!existingPhotosContainer) return;
+    
+    if (!photos || photos.length === 0) {
+        existingPhotosContainer.innerHTML = '';
+        existingPhotosContainer.style.display = 'none';
+        return;
+    }
+    
+    existingPhotosContainer.style.display = 'block';
+    existingPhotosContainer.innerHTML = '<h4 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 0.95rem;">Current Photos</h4>';
+    
+    const photosGrid = document.createElement('div');
+    photosGrid.style.display = 'flex';
+    photosGrid.style.flexWrap = 'wrap';
+    photosGrid.style.gap = '12px';
+    
+    photos.forEach((photoURL, index) => {
+        const photoItem = document.createElement('div');
+        photoItem.style.position = 'relative';
+        photoItem.style.width = '100px';
+        photoItem.style.height = '100px';
+        
+        const img = document.createElement('img');
+        img.src = photoURL;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = 'var(--radius-md)';
+        img.style.border = '2px solid var(--border-color)';
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.innerHTML = '&times;';
+        deleteBtn.className = 'btn-delete-photo';
+        deleteBtn.style.position = 'absolute';
+        deleteBtn.style.top = '-8px';
+        deleteBtn.style.right = '-8px';
+        deleteBtn.style.width = '24px';
+        deleteBtn.style.height = '24px';
+        deleteBtn.style.borderRadius = '50%';
+        deleteBtn.style.background = 'var(--danger-color)';
+        deleteBtn.style.color = 'white';
+        deleteBtn.style.border = 'none';
+        deleteBtn.style.cursor = 'pointer';
+        deleteBtn.style.fontSize = '18px';
+        deleteBtn.style.lineHeight = '1';
+        deleteBtn.style.display = 'flex';
+        deleteBtn.style.alignItems = 'center';
+        deleteBtn.style.justifyContent = 'center';
+        deleteBtn.style.fontWeight = 'bold';
+        deleteBtn.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+        
+        deleteBtn.addEventListener('click', () => {
+            if (confirm('Delete this photo? This cannot be undone.')) {
+                photosToDelete.push(photoURL);
+                existingPhotos = existingPhotos.filter(url => url !== photoURL);
+                photoItem.remove();
+                
+                // Hide container if no photos left
+                if (existingPhotos.length === 0) {
+                    existingPhotosContainer.style.display = 'none';
+                }
+            }
+        });
+        
+        photoItem.appendChild(img);
+        photoItem.appendChild(deleteBtn);
+        photosGrid.appendChild(photoItem);
+    });
+    
+    existingPhotosContainer.appendChild(photosGrid);
 }
 
 document.getElementById('add-part-btn').addEventListener('click', () => {
@@ -384,16 +550,34 @@ newEntryForm.addEventListener('submit', async (e) => {
     const photoFiles = document.getElementById('entry-photos').files;
     
     try {
-        statusContainer.innerHTML = 'Uploading photos...';
+        // Delete marked photos from Storage first
+        if (photosToDelete.length > 0) {
+            statusContainer.innerHTML = 'Deleting removed photos...';
+            for (const photoURL of photosToDelete) {
+                try {
+                    await storage.refFromURL(photoURL).delete();
+                    console.log('Deleted photo from storage:', photoURL);
+                } catch (err) {
+                    console.warn('Failed to delete photo:', photoURL, err);
+                }
+            }
+        }
+        
+        statusContainer.innerHTML = 'Compressing and uploading photos...';
         const photoURLs = [];
         
         for (let i = 0; i < photoFiles.length; i++) {
             const file = photoFiles[i];
-            console.log(`Uploading photo ${i + 1} of ${photoFiles.length}...`);
+            console.log(`Processing photo ${i + 1} of ${photoFiles.length}...`);
+            statusContainer.innerHTML = `Compressing photo ${i+1}/${photoFiles.length}...`;
+            
+            // Compress image before upload
+            const compressedFile = await compressImage(file, 1920, 1920, 0.85);
+            
             statusContainer.innerHTML = `Uploading photo ${i+1}/${photoFiles.length}...`;
             
             const url = await uploadFile(
-                file, 
+                compressedFile, 
                 `service_photos/${auth.currentUser.uid}/${carId}/${Date.now()}_${file.name}`, 
                 (p) => statusContainer.innerHTML = `Uploading photo ${i+1}/${photoFiles.length}: ${p}%`
             );
@@ -413,11 +597,11 @@ newEntryForm.addEventListener('submit', async (e) => {
         if (currentEditEntryId) {
             statusContainer.innerHTML = 'Updating entry...';
             console.log("Updating existing entry...");
-            const entryRef = db.collection('cars').doc(carId).collection('service_history').doc(currentEditEntryId);
-            const existingEntry = await entryRef.get();
-            const existingPhotos = existingEntry.data().photos || [];
+            
+            // Combine remaining existing photos with new photos
             entryData.photos = [...existingPhotos, ...photoURLs];
-            await entryRef.update(entryData);
+            
+            await db.collection('cars').doc(carId).collection('service_history').doc(currentEditEntryId).update(entryData);
             console.log("Entry updated successfully");
         } else {
             statusContainer.innerHTML = 'Saving entry...';
@@ -623,6 +807,12 @@ async function editEntry(carId, entryId) {
         } else {
             addPartRow();
         }
+        
+        // Load existing photos
+        existingPhotos = entry.photos ? [...entry.photos] : [];
+        photosToDelete = [];
+        photoPreviewContainer.innerHTML = '';
+        displayExistingPhotos(existingPhotos);
         
         currentEditEntryId = entryId;
         document.getElementById('save-entry-btn').textContent = "Save Changes";
