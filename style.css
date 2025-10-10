@@ -179,9 +179,9 @@ body {
     min-height: 100vh;
 }
 
-/* Sidebar */
+/* Sidebar - NOW 30% NARROWER */
 .sidebar {
-    width: 260px;
+    width: 182px;
     background: var(--bg-glass);
     backdrop-filter: blur(20px);
     border-right: 1px solid var(--border-color);
@@ -201,16 +201,16 @@ body {
 }
 
 .sidebar-logo {
-    width: 140px;
+    width: 120px;
     height: auto;
-    max-height: 70px;
+    max-height: 60px;
     object-fit: contain;
     animation: pulse 3s ease-in-out infinite;
     filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.3));
 }
 
 .sidebar-header h2 {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 700;
     color: var(--text-primary);
     letter-spacing: -0.025em;
@@ -234,7 +234,7 @@ body {
     text-decoration: none;
     border-radius: var(--radius-md);
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -288,9 +288,9 @@ body {
 
 .submenu-link {
     display: block;
-    padding: 10px 16px 10px 48px !important;
+    padding: 10px 16px 10px 36px !important;
     color: var(--text-muted) !important;
-    font-size: 0.875rem !important;
+    font-size: 0.85rem !important;
     border-radius: var(--radius-md);
 }
 
@@ -306,9 +306,9 @@ body {
 }
 
 .submenu-item.no-cars {
-    padding: 10px 16px 10px 48px;
+    padding: 10px 16px 10px 36px;
     color: var(--text-muted);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-style: italic;
 }
 
@@ -319,21 +319,9 @@ body {
     flex-direction: column;
 }
 
+/* HIDE MAIN HEADER */
 .main-header {
-    display: flex;
-    align-items: center;
-    padding: 24px 32px;
-    background: var(--bg-glass);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
-}
-
-.main-header h1 {
-    font-size: 1.75rem;
-    color: var(--text-primary);
-    font-weight: 700;
-    letter-spacing: -0.025em;
+    display: none;
 }
 
 #menu-toggle {
@@ -960,7 +948,7 @@ body {
 
 .details-cell {
     background: var(--bg-secondary);
-    padding: 20px !important;
+    padding: 20px 20px 32px 20px !important;
 }
 
 .details-content h5 {
@@ -1087,6 +1075,7 @@ body {
         height: 100vh;
         transform: translateX(-100%);
         box-shadow: var(--shadow-lg);
+        width: 260px;
     }
     
     .sidebar.open {
@@ -1094,11 +1083,15 @@ body {
     }
 
     .main-header {
+        display: flex;
         padding: 16px 20px;
         position: sticky;
         top: 0;
         z-index: 100;
         box-shadow: var(--shadow-sm);
+        background: var(--bg-glass);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-color);
     }
 
     .main-header h1 {
@@ -1438,28 +1431,16 @@ body {
         margin-bottom: 0;
     }
 
-    /* Button row: Expand, Edit, Delete */
-    .history-table tbody tr.entry-row td:nth-child(6),
-    .history-table tbody tr.entry-row td:nth-child(7),
-    .history-table tbody tr.entry-row td:nth-child(8) {
+    /* Button row: Expand (only one button in view.html) */
+    .history-table tbody tr.entry-row td:nth-child(6) {
         order: 6;
-        width: 33.33%;
+        width: 100%;
         padding: 8px 4px 0 4px;
         margin-top: 8px;
         padding-top: 8px;
         border-top: 1px solid var(--border-color);
         text-align: center;
         box-sizing: border-box;
-    }
-
-    .history-table tbody tr.entry-row td:nth-child(6) {
-        margin-left: -12px;
-        padding-left: 12px;
-    }
-
-    .history-table tbody tr.entry-row td:nth-child(8) {
-        margin-right: -12px;
-        padding-right: 12px;
     }
 
     .history-table tbody .action-link {

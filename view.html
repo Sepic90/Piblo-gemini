@@ -12,7 +12,7 @@
         }
         
         .main-content {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
         }
         
@@ -90,24 +90,165 @@
             letter-spacing: 0.5px;
         }
         
-        .history-table tbody tr {
+        .history-table tbody tr.entry-row {
             transition: background 0.2s;
         }
         
-        .history-table tbody tr:hover {
+        .history-table tbody tr.entry-row:hover {
             background: var(--bg-secondary);
         }
         
-        .history-table tbody tr:nth-child(even) {
+        .history-table tbody tr.entry-row:nth-child(4n+1) {
             background: var(--bg-tertiary);
         }
         
-        .history-table tbody tr:nth-child(even):hover {
+        .history-table tbody tr.entry-row:nth-child(4n+1):hover {
             background: var(--bg-secondary);
         }
         
         .history-table .centered {
             text-align: center;
+        }
+        
+        .history-table th:nth-child(1),
+        .history-table td:nth-child(1) { width: 105px; }
+        .history-table th:nth-child(2),
+        .history-table td:nth-child(2) { width: 110px; }
+        .history-table th:nth-child(3),
+        .history-table td:nth-child(3) { width: 180px; }
+        .history-table th:nth-child(4),
+        .history-table td:nth-child(4) {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .history-table th:nth-child(5),
+        .history-table td:nth-child(5) {
+            width: 50px;
+            text-align: center;
+        }
+        .history-table th:nth-child(6),
+        .history-table td:nth-child(6) {
+            width: 80px;
+            text-align: center;
+        }
+        
+        .details-row {
+            display: none;
+        }
+        
+        .details-cell {
+            background: var(--bg-secondary);
+            padding: 24px !important;
+        }
+        
+        .details-content {
+            margin-bottom: 20px;
+        }
+        
+        .details-content h5 {
+            font-size: 0.9rem;
+            margin-top: 16px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .details-content h5:first-child {
+            margin-top: 0;
+        }
+        
+        .details-content .description-text {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+        
+        .details-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .details-gallery a {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid var(--border-color);
+        }
+        
+        .details-gallery a:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .details-gallery img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .parts-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        
+        .parts-table th,
+        .parts-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            text-align: left;
+        }
+        
+        .parts-table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .parts-table tbody tr {
+            background: var(--bg-secondary);
+        }
+        
+        .parts-table tbody tr:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .action-link {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        
+        .action-link:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
         }
         
         .footer-text {
